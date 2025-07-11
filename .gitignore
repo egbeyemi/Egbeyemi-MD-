@@ -1,1 +1,15 @@
+# Node modules
+node_modules/
 
+# Authentication state
+auth_info.json
+
+# Environment variables
+.env
+
+# Log files
+*.log
+
+# Operating system files
+.DS_Store
+Thumbs.db
