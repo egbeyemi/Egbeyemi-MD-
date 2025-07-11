@@ -1,27 +1,45 @@
-require('dotenv').config();
-const { default: makeWASocket, useSingleFileAuthState } = require('@adiwajshing/baileys');
-const fs = require('fs');
+const { default: makeWASocket, useSingleFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys')
+const { Boom } = require('@hapi/boom')
+const P = require('pino')
 
-const { SESSION_ID } = process.env;
-const { state, saveState } = useSingleFileAuthState('./auth_info.json');
+// Load session
+const { state, saveState } = useSingleFileAuthState('./session.json')
 
-const startBot = async () => {
+async function startBot() {
   const sock = makeWASocket({
     auth: state,
-    printQRInTerminal: true,
-  });
+    printQRInTerminal: true, // Show QR/Pair Code
+    logger: P({ level: 'silent' })
+  })
 
-  sock.ev.on('creds.update', saveState);
+  // Save session when updated
+  sock.ev.on('creds.update', saveState)
 
-  sock.ev.on('messages.upsert', async (msg) => {
-    const m = msg.messages[0];
-    if (!m.message) return;
-
-    const text = m.message.conversation || m.message.extendedTextMessage?.text;
-    if (text === '.ping') {
-      await sock.sendMessage(m.key.remoteJid, { text: '🟢 Bot is online!' });
+  // Connection updates
+  sock.ev.on('connection.update', (update) => {
+    const { connection, lastDisconnect } = update
+    if (connection === 'close') {
+      const shouldReconnect = (lastDisconnect.error = Boom)?.output?.statusCode !== DisconnectReason.loggedOut
+      console.log('Connection closed due to', lastDisconnect.error, ', reconnecting:', shouldReconnect)
+      if (shouldReconnect) startBot()
+    } else if (connection === 'open') {
+      console.log('✅ Bot connected!')
     }
-  });
-};
+  })
 
-startBot();
+  // Listen for incoming messages
+  sock.ev.on('messages.upsert', async ({ messages, type }) => {
+    if (type !== 'notify') return
+    const msg = messages[0]
+    if (!msg.message) return
+    const sender = msg.key.remoteJid
+    const text = msg.message.conversation || msg.message.extendedTextMessage?.text
+
+    // Example reply
+    if (text === 'hi') {
+      await sock.sendMessage(sender, { text: 'Hello! This is Egbeyemi-MD bot 🤖' })
+    }
+  })
+}
+
+startBot()
