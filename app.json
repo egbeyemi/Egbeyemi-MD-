@@ -1,1 +1,38 @@
-
+{
+  "name": "Egbeyemi-MD",
+  "description": "A powerful multi-device WhatsApp bot by Abdulrahmon Egbeyemi",
+  "repository": "https://github.com/egbeyemi/Egbeyemi-MD-",
+  "keywords": [
+    "WhatsApp",
+    "Bot",
+    "MD",
+    "Egbeyemi"
+  ],
+  "env": {
+    "SESSION_ID": {
+      "description": "Your WhatsApp MD session ID",
+      "required": true
+    },
+    "OWNER_NAME": {
+      "description": "Owner's name",
+      "required": true
+    },
+    "OWNER_NUMBER": {
+      "description": "Owner's WhatsApp number",
+      "required": true
+    },
+    "BOT_NAME": {
+      "description": "Your bot name (e.g., Egbeyemi-MD)",
+      "required": true
+    },
+    "PORT": {
+      "description": "Port to run your app",
+      "value": "3000"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ]
+}
